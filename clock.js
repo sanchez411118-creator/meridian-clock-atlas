@@ -22,7 +22,7 @@ const places=[
   ["pk","巴基斯坦","伊斯兰堡","Islamabad","Asia/Karachi","亚洲"],
   ["kz","哈萨克斯坦","阿斯塔纳","Astana","Asia/Almaty","亚洲"],
   ["ru","俄罗斯","莫斯科","Moscow","Europe/Moscow","欧洲"],
-  ...mapPlaces
+  ...additionalPlaces
 ];
 const russianCities=[
   ["加里宁格勒","Kaliningrad","Europe/Kaliningrad"],["莫斯科","Moscow","Europe/Moscow"],["萨马拉","Samara","Europe/Samara"],["叶卡捷琳堡","Yekaterinburg","Asia/Yekaterinburg"],["鄂木斯克","Omsk","Asia/Omsk"],["新西伯利亚","Novosibirsk","Asia/Novosibirsk"],["伊尔库茨克","Irkutsk","Asia/Irkutsk"],["雅库茨克","Yakutsk","Asia/Yakutsk"],["符拉迪沃斯托克","Vladivostok","Asia/Vladivostok"],["马加丹","Magadan","Asia/Magadan"],["彼得罗巴甫洛夫斯克","Petropavlovsk","Asia/Kamchatka"]
@@ -87,7 +87,7 @@ function refresh(){
     const cityMarkup=key==="ru"?'<span class="pick-city"><select class="city-select" aria-label="俄罗斯城市">'+russianCities.map(c=>'<option value="'+c[2]+'" '+(zone===c[2]?"selected":"")+'>'+c[0]+' · '+c[1]+'</option>').join("")+'</select><i>'+icon("down")+'</i></span>':city+" · "+en;
     const destination=city===name?name:name+" · "+city;
     const starred=stars.has(key),action=(starred?"取消收藏":"收藏")+destination;
-    el.innerHTML='<div class="art"><img alt="" src="'+bannerFor(key)+'"><span class="period-chip"></span></div><div class="card-body"><div class="title-row"><h3>'+name+'</h3><button type="button" class="fav" aria-label="'+action+'" title="'+action+'" aria-pressed="'+starred+'">'+icon("star")+'</button></div><div class="city-line">'+cityMarkup+'</div><div class="card-time"><strong></strong><small></small><em></em></div><div class="card-foot"><span class="date"><i>'+icon("date")+'</i><span></span></span><span class="offset"></span></div></div>';
+    el.innerHTML='<div class="art"><img alt="" src="./art/'+key+'.svg"><span class="period-chip"></span></div><div class="card-body"><div class="title-row"><h3>'+name+'</h3><button type="button" class="fav" aria-label="'+action+'" title="'+action+'" aria-pressed="'+starred+'">'+icon("star")+'</button></div><div class="city-line">'+cityMarkup+'</div><div class="card-time"><strong></strong><small></small><em></em></div><div class="card-foot"><span class="date"><i>'+icon("date")+'</i><span></span></span><span class="offset"></span></div></div>';
     const q=selector=>el.querySelector(selector),fav=q(".fav");
     fav.addEventListener("click",()=>{
       if(stars.has(key))stars.delete(key);else stars.add(key);
