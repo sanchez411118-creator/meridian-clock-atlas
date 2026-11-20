@@ -1,0 +1,41 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="theme-color" content="#10151e">
+  <meta name="description" content="一屏查看常用国家和地区的实时当地时间、日期和时差。">
+  <title>时区图鉴 · 世界时钟</title>
+  <link rel="icon" href="./logo.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="./style.css">
+</head>
+<body>
+  <header><div class="shell bar">
+    <a class="brand" href="#all" aria-label="时区图鉴首页"><img src="./logo.svg" width="38" height="38" alt=""><b>时区图鉴</b></a>
+    <nav aria-label="主导航">
+      <a href="#all" id="nav-all"><i data-ico="grid"></i>总览</a>
+      <a href="#favorites" id="nav-favorites"><i data-ico="star"></i>我的收藏</a>
+    </nav>
+    <div class="controls"><span class="live"><span></span>实时更新</span><div class="switch" aria-label="时间制式" role="group"><button id="f24">24H</button><button id="f12">12H</button></div></div>
+  </div></header>
+  <main class="shell">
+    <section class="hero" aria-label="本地时间">
+      <div class="hero-art"><canvas id="atlas" aria-hidden="true"></canvas></div>
+      <div class="hero-copy">
+        <div class="eyebrow"><span></span>WORLD CLOCK</div>
+        <h1>世界时钟</h1>
+        <div class="hero-time"><strong id="local-hm">--:--</strong><small id="local-sec">:--</small><em id="local-period"></em></div>
+        <div class="hero-info"><span><i data-ico="pin"></i>本地时间</span><b aria-hidden="true">/</b><span id="local-date"></span></div>
+      </div>
+    </section>
+    <section aria-labelledby="section-title">
+      <div class="section-head"><div class="section-name"><h2 id="section-title">地区时钟</h2><span id="count"></span></div>
+        <div class="filters" role="group" aria-label="按洲筛选"><button data-area="全部">全部</button><button data-area="亚洲">亚洲</button><button data-area="欧洲">欧洲</button><button data-area="南美洲">南美洲</button></div>
+      </div>
+      <div id="clocks"></div>
+      <div id="empty" hidden><i data-ico="star"></i><h3></h3><p></p><button></button></div>
+      <span id="notice" class="sr-only" role="status"></span>
+    </section>
+  </main>
+  <script src="./map.js" defer></script><script src="./clock.js" defer></script>
+</body></html>
