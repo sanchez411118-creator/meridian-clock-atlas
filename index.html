@@ -7,7 +7,7 @@
   <meta name="description" content="一屏查看常用国家和地区的实时当地时间、日期和时差。">
   <title>时区图鉴 · 世界时钟</title>
   <link rel="icon" href="./logo.svg" type="image/svg+xml">
-  <link rel="stylesheet" href="./style.css">
+  <link rel="stylesheet" href="./style.css?catalog=2">
 </head>
 <body>
   <header><div class="shell bar">
@@ -30,12 +30,13 @@
     </section>
     <section aria-labelledby="section-title">
       <div class="section-head"><div class="section-name"><h2 id="section-title">地区时钟</h2><span id="count"></span></div>
-        <div class="filters" role="group" aria-label="按洲筛选"><button data-area="全部">全部</button><button data-area="亚洲">亚洲</button><button data-area="欧洲">欧洲</button><button data-area="南美洲">南美洲</button></div>
+        <label class="search-box"><i data-ico="search"></i><input id="place-search" type="search" placeholder="搜索国家、地区或城市" aria-label="搜索国家、地区或城市" autocomplete="off"></label>
+        <div class="filters" role="group" aria-label="按洲筛选"><button data-area="全部">全部</button><button data-area="亚洲">亚洲</button><button data-area="欧洲">欧洲</button><button data-area="北美洲">北美洲</button><button data-area="南美洲">南美洲</button><button data-area="非洲">非洲</button><button data-area="大洋洲">大洋洲</button></div>
       </div>
       <div id="clocks"></div>
       <div id="empty" hidden><i data-ico="star"></i><h3></h3><p></p><button></button></div>
       <span id="notice" class="sr-only" role="status"></span>
     </section>
   </main>
-  <script src="./map.js" defer></script><script src="./clock.js" defer></script>
+  <script src="./map.js" defer></script><script src="./destinations.js" defer></script><script src="./clock.js?catalog=2" defer></script>
 </body></html>

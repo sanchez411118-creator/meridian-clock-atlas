@@ -1,4 +1,5 @@
 const icons={
+  search:'<circle cx="10.5" cy="10.5" r="6.5"/><path d="m16 16 5 5"/>',
   grid:'<rect x="3" y="3" width="7" height="7" rx="1.3"/><rect x="14" y="3" width="7" height="7" rx="1.3"/><rect x="3" y="14" width="7" height="7" rx="1.3"/><rect x="14" y="14" width="7" height="7" rx="1.3"/>',
   star:'<path d="m12 3 2.75 5.6 6.15.9-4.45 4.34 1.05 6.12L12 17.07l-5.5 2.89 1.05-6.12L3.1 9.5l6.15-.9Z"/>',
   pin:'<path d="M19.5 10c0 5-7.5 11-7.5 11S4.5 15 4.5 10a7.5 7.5 0 1 1 15 0Z"/><circle cx="12" cy="10" r="2.5"/>',
@@ -20,7 +21,8 @@ const places=[
   ["in","印度","新德里","New Delhi","Asia/Kolkata","亚洲"],
   ["pk","巴基斯坦","伊斯兰堡","Islamabad","Asia/Karachi","亚洲"],
   ["kz","哈萨克斯坦","阿斯塔纳","Astana","Asia/Almaty","亚洲"],
-  ["ru","俄罗斯","莫斯科","Moscow","Europe/Moscow","欧洲"]
+  ["ru","俄罗斯","莫斯科","Moscow","Europe/Moscow","欧洲"],
+  ...mapPlaces
 ];
 const russianCities=[
   ["加里宁格勒","Kaliningrad","Europe/Kaliningrad"],["莫斯科","Moscow","Europe/Moscow"],["萨马拉","Samara","Europe/Samara"],["叶卡捷琳堡","Yekaterinburg","Asia/Yekaterinburg"],["鄂木斯克","Omsk","Asia/Omsk"],["新西伯利亚","Novosibirsk","Asia/Novosibirsk"],["伊尔库茨克","Irkutsk","Asia/Irkutsk"],["雅库茨克","Yakutsk","Asia/Yakutsk"],["符拉迪沃斯托克","Vladivostok","Asia/Vladivostok"],["马加丹","Magadan","Asia/Magadan"],["彼得罗巴甫洛夫斯克","Petropavlovsk","Asia/Kamchatka"]
@@ -30,6 +32,16 @@ function save(key,value){try{localStorage.setItem("time-atlas:"+key,JSON.stringi
 const saved=read("stars",[]),stars=new Set(Array.isArray(saved)?saved:[]);
 let use12=read("12h",false)===true,area="全部",view="",active=[],russian=russianCities.find(c=>c[2]===read("russia","Europe/Moscow"))||russianCities[1];
 const byId=id=>document.getElementById(id);
+const searchBox=byId("place-search");
+const countryNames=new Intl.DisplayNames(["en"],{type:"region"});
+const aliases={sa:"KSA Saudi Arabia 沙特",ae:"UAE United Arab Emirates",dubai:"UAE United Arab Emirates 阿联酋",gb:"UK England Great Britain 英格兰",us:"USA America 美利坚",tr:"Turkey Türkiye",id:"印尼",my:"大马",au:"澳洲",nz:"纽西兰",hk:"香港 Hongkong",tw:"台湾 臺灣 臺北",kr:"南韩 South Korea",kz:"哈国"};
+function normalizeSearch(value){
+  return value.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"").trim();
+}
+function searchText([key,country,city,english]){
+  const code=key==="dubai"?"ae":key.split("-")[0];
+  return normalizeSearch([country,city,english,code,countryNames.of(code.toUpperCase()),aliases[code],aliases[key]].join(" "));
+}
 const weekdays=["周日","周一","周二","周三","周四","周五","周六"];
 const formatters=new Map();
 function parts(instant,zone){
@@ -61,20 +73,27 @@ function refresh(){
   for(const key of ["all","favorites"]){const a=byId("nav-"+key);if(view===key)a.setAttribute("aria-current","page");else a.removeAttribute("aria-current")}
   byId("f12").setAttribute("aria-pressed",use12);byId("f24").setAttribute("aria-pressed",!use12);
   document.querySelectorAll("[data-area]").forEach(b=>b.setAttribute("aria-pressed",b.dataset.area===area));
-  const rows=places.map(p=>p[0]==="ru"?[p[0],p[1],...russian,russian[2].startsWith("Asia/")?"亚洲":"欧洲"]:p).filter(p=>(view==="all"||stars.has(p[0]))&&(area==="全部"||p[5]===area));
+  const terms=normalizeSearch(searchBox.value).split(/\s+/).filter(Boolean);
+  const rows=places.map(p=>p[0]==="ru"?[p[0],p[1],...russian,russian[2].startsWith("Asia/")?"亚洲":"欧洲"]:p).filter(p=>{
+    if(view==="favorites"&&!stars.has(p[0]) || area!=="全部"&&p[5]!==area)return false;
+    if(!terms.length)return true;
+    const haystack=searchText(p);
+    return terms.every(term=>haystack.includes(term));
+  });
   byId("section-title").textContent=view==="all"?"地区时钟":"我的收藏";byId("count").textContent=rows.length;
   byId("clocks").replaceChildren();active=[];
   for(const [key,name,city,en,zone] of rows){
     const el=document.createElement("article");el.className="clock";
     const cityMarkup=key==="ru"?'<span class="pick-city"><select class="city-select" aria-label="俄罗斯城市">'+russianCities.map(c=>'<option value="'+c[2]+'" '+(zone===c[2]?"selected":"")+'>'+c[0]+' · '+c[1]+'</option>').join("")+'</select><i>'+icon("down")+'</i></span>':city+" · "+en;
-    const starred=stars.has(key),action=(starred?"取消收藏":"收藏")+name;
-    el.innerHTML='<div class="art"><img alt="" src="./art/'+key+'.svg"><span class="period-chip"></span></div><div class="card-body"><div class="title-row"><h3>'+name+'</h3><button type="button" class="fav" aria-label="'+action+'" title="'+action+'" aria-pressed="'+starred+'">'+icon("star")+'</button></div><div class="city-line">'+cityMarkup+'</div><div class="card-time"><strong></strong><small></small><em></em></div><div class="card-foot"><span class="date"><i>'+icon("date")+'</i><span></span></span><span class="offset"></span></div></div>';
+    const destination=city===name?name:name+" · "+city;
+    const starred=stars.has(key),action=(starred?"取消收藏":"收藏")+destination;
+    el.innerHTML='<div class="art"><img alt="" src="'+bannerFor(key)+'"><span class="period-chip"></span></div><div class="card-body"><div class="title-row"><h3>'+name+'</h3><button type="button" class="fav" aria-label="'+action+'" title="'+action+'" aria-pressed="'+starred+'">'+icon("star")+'</button></div><div class="city-line">'+cityMarkup+'</div><div class="card-time"><strong></strong><small></small><em></em></div><div class="card-foot"><span class="date"><i>'+icon("date")+'</i><span></span></span><span class="offset"></span></div></div>';
     const q=selector=>el.querySelector(selector),fav=q(".fav");
     fav.addEventListener("click",()=>{
       if(stars.has(key))stars.delete(key);else stars.add(key);
       save("stars",[...stars]);byId("notice").textContent=name+(stars.has(key)?"已收藏":"已取消收藏");
       if(view==="favorites"){refresh();(byId("clocks").querySelector(".fav")||byId("empty").querySelector("button")).focus()}else{
-        const text=(stars.has(key)?"取消收藏":"收藏")+name;fav.setAttribute("aria-pressed",stars.has(key));fav.setAttribute("aria-label",text);fav.title=text;
+        const text=(stars.has(key)?"取消收藏":"收藏")+destination;fav.setAttribute("aria-pressed",stars.has(key));fav.setAttribute("aria-label",text);fav.title=text;
       }
     });
     q("select")?.addEventListener("change",event=>{russian=russianCities.find(c=>c[2]===event.target.value);save("russia",russian[2]);refresh();(document.querySelector(".city-select")||document.querySelector('[data-area][aria-pressed=true]')).focus()});
@@ -83,13 +102,14 @@ function refresh(){
   const empty=byId("empty");empty.hidden=rows.length>0;
   if(!rows.length){
     const noStars=view==="favorites"&&stars.size===0;
-    empty.querySelector("h3").textContent=noStars?"还没有收藏的地区":"这里暂时没有时钟";
+    empty.querySelector("h3").textContent=noStars?"还没有收藏的地区":terms.length?"没有找到匹配的时钟":"这里暂时没有时钟";
     empty.querySelector("p").textContent=noStars?"在地区时钟上点亮星标，这里就会显示它的当地时间。":"切换到全部地区，查看其他时钟。";
-    const button=empty.querySelector("button");button.textContent=noStars?"查看地区时钟":"显示全部地区";button.onclick=()=>{area="全部";if(noStars)location.hash="all";refresh()};
+    const button=empty.querySelector("button");button.textContent=noStars?"查看地区时钟":"清除筛选";button.onclick=()=>{area="全部";searchBox.value="";if(noStars)location.hash="all";refresh()};
   }
   draw();
 }
 for(const [id,value] of [["f12",true],["f24",false]])byId(id).addEventListener("click",()=>{use12=value;save("12h",use12);refresh()});
 document.querySelectorAll("[data-area]").forEach(b=>b.addEventListener("click",()=>{area=b.dataset.area;refresh()}));
-addEventListener("hashchange",()=>{area="全部";refresh()});document.addEventListener("visibilitychange",()=>{if(!document.hidden)draw()});
+searchBox.addEventListener("input",refresh);
+addEventListener("hashchange",()=>{area="全部";searchBox.value="";refresh()});document.addEventListener("visibilitychange",()=>{if(!document.hidden)draw()});
 refresh();setInterval(()=>{if(!document.hidden)draw()},500);
